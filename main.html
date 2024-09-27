@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>您好！欢迎</title>
+	<script src="main.js" type="text/javascript" charset="utf-8"></script>
+	<script type="module" src="./common.js"></script>
+	<script src="./Resource/thirdParty/color-thief.umd.js"></script>
+	<link rel="stylesheet" href="./Resource/css/main.css" />
+</head>
+<body>
+	<div class="fullScreen main pagesShow">
+		<div id="Header"></div>
+		<div class="fullScreen" id="fullScreen">
+			<div id="viewpager"></div>
+			<div>
+				<div class="RecentTrends">
+					<div class="title animation">
+						<div class="title-en titleAnimation rowCenterCenter">THE LATEST DYNAMIC CONTENT</div>
+						<div class="title-zh titleAnimation rowCenterCenter">最新动态</div>
+						<div class="title-intro titleAnimation rowCenterCenter">区域展示，汇集网页最新的动态资源内容动态内容完全由作者个人编制。</div>
+					</div>
+					<div class="RecentTrends-content">
+						<div class="item columnCenterCenter" style="background-image: url(./Resource/imgs/index/index1.jpg);">
+							<div>我是标题</div>
+							<div>2022-02-22</div>
+						</div>
+						<div class="item columnCenterCenter" style="background-image: url(./Resource/imgs/index/index2.jpg);">
+							<div>我是标题</div>
+							<div>2022-02-22</div>
+						</div>
+						<div class="item columnCenterCenter" style="background-image: url(./Resource/imgs/index/index3.jpg);">
+							<div>我是标题</div>
+							<div>2022-02-22</div>
+						</div>
+						<div class="item columnCenterCenter" style="background-image: url(./Resource/imgs/index/index4.jpg);">
+							<div>我是标题</div>
+							<div>2022-02-22</div>
+						</div>
+						<div class="item columnCenterCenter" style="background-image: url(./Resource/imgs/index/index5.jpg);">
+							<div>我是标题</div>
+							<div>2022-02-22</div>
+						</div>
+					</div>
+					<div class="userInfoName userBg rowCenterCenter" style="background-image: url(./Resource/imgs/index/index7.jpg);">
+						<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+						  <text x="20%" y="77%" font-size="12rem" fill="none" stroke="white" stroke-width="2">王</text>
+						</svg>
+					</div>
+				</div>
+			</div>
+			<div style="position: relative;">
+				<canvas id="canvas2D"></canvas>
+				<div class="logs fullScreen">
+					<h2>更新日志</h2>
+					<div class="rowBetweenCenter">
+						<div class="item">
+							<div class="logs-title">网站更新日期</div>
+							<div class="logs-center" id="weblogs"></div>
+						</div>
+						<div class="item">
+							<div class="logs-title">js库更新日志</div>
+							<div class="logs-center" id="jslogs"></div>
+						</div>
+						<div class="item">
+							<div class="logs-title">更新日志</div>
+							<div class="logs-center" id="logs"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div>
+				<div class="ManagementPlatform fullScreen">
+					<div></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="module">
+		import { banner, webLogs, jsLogs }  from "./data/index.js";
+		import { rollerSwitch } from "./wsx_module/rollerSwitch/index.js";
+		import { rem } from "./wsx_module/rem/index.js";
+		import { viewpager } from "./wsx_module/viewpager/index.js";
+		import { ajax } from "./wsx_module/ajax/index.js";
+		import { head } from "./Resource/js/head.js";
+		
+		// 初始化函数
+		function init(){
+			rem(document.documentElement.clientWidth,document.documentElement.clientWidth,10);
+			head('Header');
+			rollerSwitch({
+				identifier:"#fullScreen",
+				callback:(e)=>{rollerSwitchCallback(e)}
+			});
+			setViewPager();
+			load();
+		};
+		
+		function setViewPager(){
+			let bannerData=[];
+			for(let i=0;i<banner.length;i++){
+				ajax("POST","https://api.xygeng.cn/openapi/one").then(data=>{
+					bannerData.push({
+						src:getHoust()+banner[i].url,
+						message:JSON.parse(data).data.content
+					});
+					if(i===banner.length-1){
+						viewpager({
+							id:"viewpager",
+							data:bannerData,
+							indicator:{
+								direction:["bottom","right"],
+								shape:"quadrate"
+							},
+							messageClass:"messageClass",
+							switchingSpeed:1500,
+							speed:15000
+						})
+					}
+				});
+			};
+		};
+		
+		function load(){
+			setInderHtml(".titleAnimation");
+			canvasDrawLine();
+			setLogs();
+		}
+		
+		function setInderHtml(params){
+			const ps=document.querySelectorAll(params);
+			ps.forEach((div)=>{
+				const result=div.textContent.split("").map((c)=>`<span>${c}</span>`).join("");
+				div.innerHTML=result;
+			});
+			const spans=document.querySelectorAll(".titleAnimation span");
+			for(let i=0;i<spans.length;i++){
+				spans[i].style.setProperty("--delay",`${i * 0.05}s`)
+			};
+			const RecentTrends=document.querySelectorAll(".RecentTrends-content .item");
+			for(let i=0;i<RecentTrends.length;i++){
+				RecentTrends[i].addEventListener("mouseenter",function(){
+					preverViewBg(this,true);
+				});
+				RecentTrends[i].addEventListener("mouseleave",function(){
+					preverViewBg(this,false);
+				})
+			};
+			var spansTwo=document.querySelectorAll(".userBg");
+			for(var i=0;i<spansTwo.length;i++){
+				spansTwo[i].addEventListener("mouseenter",function(){
+					preverViewBg(this,true);
+				});
+				spansTwo[i].addEventListener("mouseleave",function(){
+					preverViewBg(this,false);
+				})
+			};
+		};
+		
+		async function RecentTrendster(url){
+			const html=document.documentElement;
+			const colorThief=new ColorThief();
+			let image=document.createElement("img");
+			image.src=url;
+			let colors=await colorThief.getPalette(image,3);
+			const [c1,c2,c3] = colors.map(c=>`rgb(${c[0]},${c[1]},${c[2]})`);
+			html.style.backgroundImage=`linear-gradient(to bottom,${c1},${c2},${c3})`;
+			html.style.setProperty('--color2d2d2d',"#ffffff");
+			html.style.setProperty('--colora9a9a9',"#ffffff");
+		};
+		
+		function applyAnimationStyles(elements,shouldApply){
+			const styles={
+				animationName:shouldApply?'leftShowRecentTrendsItem':'',
+				animationDuration:shouldApply?'1s':'',
+				animationFillMode:shouldApply?'forwards':'',
+				animationDelay:""
+			};
+			elements.forEach((element,index)=>{
+				Object.keys(styles).forEach(styleName=>{
+					element.style[styleName]=styles[styleName];
+				});
+				const delays = {2: "4s",1: "4.3s",3: "4.3s",0: "4.7s",4: "5.2s"};
+				element.style.animationDelay=shouldApply?delays[index]:"";
+			});
+		};
+		
+		function preverViewBg(doc,type){
+			if(type){
+				let urls=doc.style.backgroundImage;
+				if(urls.includes('url(')){
+					let url=urls.replace(/url\(['"]?([^'"]+)['"]?\)/gi, '$1');
+					RecentTrendster(url);
+				};
+			}else{
+				const html=document.documentElement;
+				html.style.backgroundImage=`linear-gradient(to bottom,#ffffff,#ffffff,#ffffff)`;
+				html.style.setProperty('--color2d2d2d',"#2d2d2d");
+				html.style.setProperty('--colora9a9a9',"#a9a9a9");
+			}
+		};
+		
+		function canvasDrawLine(){
+			const cvs=document.getElementById("canvas2D");
+			const ctx=cvs.getContext("2d");
+			let canvasInit=function(){
+				cvs.width=window.innerWidth;
+				cvs.height=window.innerHeight;
+			};
+			canvasInit();
+			
+			const getRandom=function(min,max){
+				return Math.floor(Math.random() * (max+1-min)+min);
+			};
+			
+			class Point{
+				constructor(){
+					this.r=6;
+					this.x=getRandom(0,cvs.width-this.r/2);
+					this.y=getRandom(0,cvs.height-this.r/2);
+					this.xSpeed=getRandom(-50,50);
+					this.ySpeed=getRandom(-50,50);
+					this.lastDrawTime=null;
+				}
+				draw(){
+					if(this.lastDrawTime){
+						const duration=(Date.now() - this.lastDrawTime)/1000;
+						const xDis=this.xSpeed * duration,yDis=this.ySpeed*duration;
+						let x=this.x + xDis,y=this.y+yDis;
+						if(x>cvs.width - this.r/2){
+							x=cvs.width - this.r/2;
+							this.xSpeed=-this.xSpeed;
+						}else if(x<0){
+							x=0;
+							this.xSpeed=-this.xSpeed
+						};
+						if(y>cvs.height - this.r/2){
+							y=cvs.height - this.r/2;
+							this.ySpeed=-this.ySpeed;
+						}else if(y<0){
+							y=0;
+							this.ySpeed=-this.ySpeed
+						};
+						this.x=x;
+						this.y=y;
+					};
+					ctx.beginPath();
+					ctx.arc(this.x,this.y,this.r,0,2*Math.PI);
+					ctx.fillStyle="rgba(220,220,220,1)";
+					ctx.fill();
+					this.lastDrawTime=Date.now();
+				}
+			};
+			
+			class Graph{
+				constructor(pointNumber=30,maxDis=200){
+					this.points=new Array(pointNumber).fill(0).map(()=>new Point());
+					this.maxDis=maxDis;
+				}
+				draw(){
+					requestAnimationFrame(()=>{
+						this.draw();
+					});
+					ctx.clearRect(0,0,cvs.width,cvs.height);
+					for(let i=0;i<this.points.length;i++){
+						const p1 = this.points[i];
+						p1.draw();
+						for(let j=i+1;j<this.points.length;j++){
+							const p2 = this.points[j];
+							const d=Math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2);
+							if(d>this.maxDis){
+								continue;
+							};
+							ctx.beginPath();
+							ctx.moveTo(p1.x,p1.y);
+							ctx.lineTo(p2.x,p2.y);
+							ctx.closePath();
+							ctx.strokeStyle=`rgba(220,220,220,${1-d/this.maxDis})`;
+							ctx.stroke();
+						}
+					}
+				}
+			};
+			
+			const g=new Graph();
+			g.draw();
+		};
+		
+		function setLogs(){
+			let logs1=webLogs.sort((a,b)=>new Date(b.time) - new Date(a.time));
+			let logs2=jsLogs.sort((a,b)=>new Date(b.time) - new Date(a.time));
+			let newArray=[...logs1,...logs2];
+			let logs3=newArray.sort((a,b)=>new Date(b.time) - new Date(a.time));
+			let weblogsHtml="";
+			let jslogsHtml="";
+			let logsHtml="";
+			for(var i=0;i<logs1.length;i++){
+				if(i>=12){
+					break;
+				};
+				weblogsHtml+=`
+					<div class="rowStartCenter">
+						<div class="p-flex-1 textOverflow">${logs1[i].title}</div>
+						<div>${logs1[i].time}</div>
+					</div>
+				`;
+			};
+			for(var i=0;i<logs2.length;i++){
+				if(i>=12){
+					break;
+				};
+				jslogsHtml+=`
+					<div class="rowStartCenter">
+						<div class="p-flex-1 textOverflow">${logs2[i].title}</div>
+						<div>${logs2[i].time}</div>
+					</div>
+				`;
+			};
+			for(var i=0;i<logs3.length;i++){
+				if(i>=12){
+					break;
+				};
+				logsHtml+=`
+					<div class="rowStartCenter">
+						<div class="p-flex-1 textOverflow">${logs3[i].title}</div>
+						<div>${logs3[i].time}</div>
+					</div>
+				`;
+			};
+			document.getElementById("weblogs").innerHTML=weblogsHtml;
+			document.getElementById("jslogs").innerHTML=jslogsHtml;
+			document.getElementById('logs').innerHTML=logsHtml;
+		};
+		
+		function rollerSwitchCallback(e){
+			var subset=document.getElementById("fullScreen").children;
+			for(let i=0;i<subset.length;i++){
+				if(e===i && subset[i].nodeType === Node.ELEMENT_NODE){
+					subset[i].classList.add("show");
+				}else{
+					setTimeout(function(){
+						subset[i].classList.remove("show");
+					},500);
+				}
+			};
+			const RecentTrends=document.querySelectorAll(".RecentTrends-content .item");
+			if(e===1){
+				applyAnimationStyles(RecentTrends,true);
+				document.getElementsByClassName("userInfoName")[0].style.animationName="rightShowRecentTrendsItem";
+				document.getElementsByClassName("userInfoName")[0].style.animationDuration="1s";
+				document.getElementsByClassName("userInfoName")[0].style.animationFillMode="forwards";
+				document.getElementsByClassName("userInfoName")[0].style.animationDelay="4.6s";
+			}else{
+				setTimeout(function(){
+					applyAnimationStyles(RecentTrends,false);
+					document.getElementsByClassName("userInfoName")[0].style.animationName="";
+					document.getElementsByClassName("userInfoName")[0].style.animationDuration="";
+					document.getElementsByClassName("userInfoName")[0].style.animationFillMode="";
+					document.getElementsByClassName("userInfoName")[0].style.animationDelay="";
+				},1000);
+			};
+			var logsItem=document.querySelectorAll(".logs .item");
+			if(e===2){
+				for(let i=0;i<logsItem.length;i++){
+					logsItem[i].classList.add("selectPages");
+				};
+				document.querySelectorAll('.logs h2')[0].classList.add("selectPages");
+			}else{
+				for(let i=0;i<logsItem.length;i++){
+					logsItem[i].classList.remove("selectPages");
+				};
+				document.querySelectorAll('.logs h2')[0].classList.remove("selectPages");
+			}
+		};
+		
+		(function main(){
+			init();
+		})();
+	</script>
+</body>
+</html>

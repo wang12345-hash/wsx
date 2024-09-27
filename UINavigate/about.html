@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>关于</title>
+	<script src="../main.js" type="text/javascript" charset="utf-8"></script>
+	<script type="module" src="../common.js"></script>
+	<link rel="stylesheet" href="../Resource/css/about.css" />
+</head>
+<body>
+	<div class="fullScreen pagesShow main">
+		<div id="Header"></div>
+		<div class="ScrollBar">
+		    <div id="ScrollBar" style="width: 0%;"></div>
+		</div>
+		<div class="banner">
+			<div class="me">
+				<div class="about-me noTransition" id="banner"></div>
+				<div class="article"></div>
+				<div class="Back">返回</div>
+			</div>
+		</div>
+		<dialog id="dialog">
+			<div class="image-viewer rowCenterCenter">
+				<img src="" alt="Image Preview" id="image-preview">
+				<span id="close-btn" class="close-btn">&times;</span>
+			</div>
+		</dialog>
+	</div>
+	<script type="module">
+		import { rem } from "../wsx_module/rem/index.js";
+		import { head } from "../Resource/js/head.js";
+		import { aboutMe } from "../data/index.js";
+		import { notification } from "../wsx_module/notification/index.js";
+		
+		function init(){
+			rem(document.documentElement.clientWidth,document.documentElement.clientWidth,10);
+			head('Header',1);
+			console.log(aboutMe);
+			bindData();
+		};
+		
+		function bindData(){
+			var bannerHtml="";
+			for(var i=0;i<4;i++){
+				bannerHtml+=`
+					<div class="item" data-title="${aboutMe[i]?aboutMe[i]['title']:'暂无数据'}">
+					    <span>${aboutMe[i]?aboutMe[i]['title']:'暂无数据'}</span>
+					</div>
+				`;
+			};
+			document.getElementById('banner').innerHTML=bannerHtml;
+			document.addEventListener('DOMContentLoaded',()=>{
+				const details=document.querySelectorAll('[data-title]');
+				const aboutMeContainer = document.querySelector('.about-me');
+				const backContainer = document.querySelector('.Back');
+				const articleContainer = document.querySelector('.article');
+				const closeBtn=document.getElementById('close-btn');
+				const imagePreview=document.getElementById('image-preview');
+				const dialog=document.getElementById('dialog');
+				details.forEach((item)=>{
+					item.addEventListener('click',function(){
+						const title = this.getAttribute('data-title');
+						if(title==='暂无数据'){
+							notification({
+								message:'敬请期待！',
+								type: "warning"
+							});
+							return;
+						};
+						const row=aboutMe.find(element=>element['title']===title);
+						if(row){
+							showDetails(row['string']);
+						}
+					});
+				});
+				articleContainer.addEventListener('click',(event)=>{
+					if(event.target.tagName==='IMG'){
+						imagePreview.setAttribute('src',event.target.src);
+						dialog.showModal();
+					}
+				});
+				closeBtn.addEventListener('click',()=>{
+					imagePreview.setAttribute('src', '');
+					dialog.close();
+				});
+				backContainer.addEventListener('click',()=>{
+					hideDetails();
+				});
+				const showDetails=function(content){
+					aboutMeContainer.classList.remove('noTransition');
+					backContainer.classList.remove('noTransition');
+					aboutMeContainer.classList.add('isShowMax');
+					backContainer.classList.add('isShowMax');
+					articleContainer.classList.add('isShowMax');
+					articleContainer.innerHTML=content;
+				};
+				const hideDetails=function(){
+					articleContainer.classList.remove('isShowMax');
+					setTimeout(() => {
+					    aboutMeContainer.classList.remove('isShowMax');
+					    backContainer.classList.remove('isShowMax');
+					    setTimeout(() => {
+					        aboutMeContainer.classList.add('noTransition');
+					        backContainer.classList.add('noTransition');
+					        articleContainer.innerHTML = "";
+					    }, 500);
+					}, 300);
+				}
+			});
+		};
+		
+		(function about(){
+			init();
+		})();
+	</script>
+</body>
+</html>
